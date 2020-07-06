@@ -1,0 +1,222 @@
+<!doctype html>
+<meta charset="utf-8">
+
+<head>
+    <script src="https://npmcdn.com/vexflow@3.0.9/releases/vexflow-debug.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/save-svg-as-png/1.4.17/saveSvgAsPng.js"></script>
+</head>
+
+<body>
+    <div class="vexbox">
+        <div id="vf"></div>
+    </div>
+    <button onclick="SaveGraphic()">Save as PNG</button>
+    <input id="fname" type="text">
+    <script>
+        const clefs = ["treble", "bass", "alto"];
+        const sigs = ["4/4", "3/4", "5/4", "7/4"]
+        var VF;
+        var div;
+        var renderer;
+        var context;
+        var stave;
+        var notes;
+        var voice;
+
+        function CreateContext() {
+            VF = Vex.Flow;
+
+            // Create an SVG renderer and attach it to the DIV element named "vf".
+            div = document.getElementById("vf")
+            renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+
+            // Configure the rendering context.
+            renderer.resize(500, 200);
+            context = renderer.getContext();
+            context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
+        }
+
+        function CreateStave(clef) {
+            // Create a stave
+            stave = new VF.Stave(10, 40, 400, {
+                left_bar: false
+            });
+
+            // Add a clef and time signature.
+            stave.addClef(clef);
+        }
+
+        function AddTimingSignature(sig) {
+            // Add a clef and time signature.
+            stave.addTimeSignature(sig);
+        }
+
+        function AddNotes() {
+            notes = [
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                new VF.StaveNote({
+                    clef: "treble",
+                    keys: ["f/4"],
+                    duration: "8",
+                    stem_direction: VF.StaveNote.STEM_UP
+                }),
+                // A quarter-note C.
+                // new VF.StaveNote({
+                //     clef: "treble",
+                //     keys: ["d/5"],
+                //     duration: "q",
+                //     stem_direction: VF.StaveNote.STEM_DOWN
+                // }),
+                // // A quarter-note C.
+                // new VF.StaveNote({
+                //     clef: "treble",
+                //     keys: ["g/4"],
+                //     duration: "q"
+                // }),
+                // // A quarter-note C.
+                // new VF.StaveNote({
+                //     clef: "treble",
+                //     keys: ["b/4"],
+                //     duration: "q",
+                //     stem_direction: VF.StaveNote.STEM_DOWN
+                // }),
+                // // start new measure
+                // new Vex.Flow.BarNote(),
+
+                // // A quarter-note C.
+                // new VF.StaveNote({
+                //     clef: "treble",
+                //     keys: ["d/5"],
+                //     duration: "wr"
+                // }),
+            ];
+        }
+
+        function CreateVoices() {
+            voice = new VF.Voice({
+                num_beats: 4,
+                beat_value: 4,
+                resolution: VF.RESOLUTION
+            });
+            voice.setStrict(false);
+            //voice.addTickables(notes);
+        }
+
+        function FormateNotes() {
+            // Format and justify the notes to 400 pixels.
+            var formatter = new VF.Formatter().joinVoices([voice]).format([voice], 300);
+        }
+
+        function DrawStave() {
+            // Connect it to the rendering context and draw!
+            stave.setContext(context).draw();
+            voice.setContext(context);
+
+            var group1 = notes.slice(0,4);
+            var group2 = notes.slice(4,8);
+            var beam1 = new VF.Beam(group1);
+            var beam2 = new VF.Beam(group2);
+            beam1.setContext(context);
+            beam2.setContext(context);
+            
+            voice.addTickables(notes);
+                       
+            FormateNotes();
+
+            voice.draw(context, stave);
+            beam1.draw();
+            beam2.draw();
+        }
+
+        function DrawEndBarline() {
+            stave.setEndBarType(VF.Barline.type.DOUBLE);
+        }
+
+        function GroupNotes()
+        {
+            var group1 = notes.slice(0,2);
+            var group2 = notes.slice(2,7);
+            var beam1 = new VF.Beam(group1);
+            var beam2 = new VF.Beam(group2);
+            beam1.setContext(context).draw();
+            beam2.setContext(context).draw();
+        }
+
+        function SaveGraphic() {
+            saveSvgAsPng(
+                document.getElementById("vf").childNodes[0],
+                document.getElementById("fname").value + ".png", {
+                    scale: 1,
+                    excludeCss: true,
+                    encoderOptions: 1
+                });
+        }
+
+        async function Go() {
+            await CreateContext();
+            await CreateStave(clefs[0]);
+            await AddTimingSignature("4/4")
+            //await DrawEndBarline();
+            await AddNotes();
+            
+            await CreateVoices();
+            
+            //await FormateNotes();
+
+            //await GroupNotes();
+
+            DrawStave();
+        }
+
+        Go();
+    </script>
+</body>

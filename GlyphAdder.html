@@ -1,0 +1,238 @@
+<!doctype html>
+<meta charset="utf-8">
+
+<head>
+  <style>
+    @font-face {
+      font-family: "BravuraText";
+      src: url("./Bravura.otf");
+    }
+
+    .bravura {
+      font-family: "BravuraText";
+      font-size: 512px;
+    }
+
+    .bravura_512 {
+      font-family: "BravuraText";
+      font-size: 512px;
+    }
+    .bravura_256 {
+      font-family: "BravuraText";
+      font-size: 256px;
+    }
+    .bravura_128 {
+      font-family: "BravuraText";
+      font-size: 128px;
+    }    
+    .bravura_64 {
+      font-family: "BravuraText";
+      font-size: 64px;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/save-svg-as-png/1.4.17/saveSvgAsPng.js"></script>
+  <script src="https://unpkg.com/vextab@3.0.6/releases/vextab-div.js"></script>
+  <script src="http://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="./canvas2image.js"></script>
+  <script>
+    // const clefs = ["treble", "bass", "alto"];
+    // const sigs = ["4/4", "3/4", "5/4", "7/4"]
+    // var VF;
+    // var div;
+    // var renderer;
+    // var context;
+    // var stave;
+
+    // function CreateContext() {
+    //   VF = Vex.Flow;
+
+    //   // Create an SVG renderer and attach it to the DIV element named "vf".
+    //   div = document.getElementById("vf")
+    //   renderer = new VF.Renderer(div, VF.Renderer.Backends.SVG);
+
+    //   // Configure the rendering context.
+    //   renderer.resize(500, 500);
+    //   context = renderer.getContext();
+    //   context.setFont("Arial", 10, "").setBackgroundFillStyle("#eed");
+    // }
+
+    // function CreateStave(clef) {
+    //   // Create a stave
+    //   stave = new VF.Stave(0, 80, 100, {
+    //     left_bar: true
+    //   });
+
+    //   // Add a clef and time signature.
+    //   stave.addClef(clef);
+    // }
+
+    // function AddTimingSignature(sig) {
+    //   // Add a clef and time signature.
+    //   stave.addTimeSignature(sig);
+    // }
+
+    // function DrawStave() {
+    //   // Connect it to the rendering context and draw!
+    //   stave.setContext(context).draw();
+    // }
+
+    // function SaveGraphic() {
+    //   saveSvgAsPng(
+    //     document.getElementById("vf").childNodes[0],
+    //     document.getElementById("fname").value + ".png", {
+    //       scale: 1,
+    //       excludeCss: true,
+    //       encoderOptions: 1
+    //     });
+    // }
+
+    // async function Go() {
+    //   await CreateContext();
+    //   await CreateStave(clefs[0]);
+    //   DrawStave();
+    // }
+  </script>
+</head>
+
+<body>
+  <svg id="capture_HQ" overflow="visible" height="2064px" width=420>
+    <text y=1032 x=210 id="symbol_HQ" class="bravura_128" text-anchor="middle">&#xE1D7; + &#xE1D7; + &#xE1D7;</text>
+  </svg>
+  <!-- <svg style="margin-top: 720px;" id="capture_SQ" overflow="visible">
+    <text id="symbol_SQ" class="bravura_256" text-anchor="middle">&#xE1D5;</text>
+  </svg>
+  <span>
+    <svg style="margin-top: 720px;" id="capture_LQ" overflow="visible">
+      <text id="symbol_LQ" class="bravura_128" text-anchor="middle">&#xE1D5;</text>
+    </svg>
+  </span>
+  <span>
+    <svg style="margin-top: 720px;" id="capture_MQ" overflow="visible">
+      <text id="symbol_MQ" class="bravura_64" text-anchor="middle">&#xE1D5;</text>
+    </svg>
+  </span> -->
+  <div>
+    <button onclick="SaveGraphic()">Save HQ as as PNG</button>
+    <button onclick="SaveAll()">Save All as PNG</button>
+    <div>
+    <form>
+      <input type="text" id="symbol-code"/>      
+    </form>
+    <button onclick="UpdateSymbol()">Update from Text Code</button>
+  </div>
+    <select id="composites">
+      <option value="&#xE1F0;&#xE1F2;">Two Eighth Notes</option>
+      <option value="&#xE1F0;&#xE1F4;&#xE1F4;&#xE1F4;">Four Sixteenth Notes</option>
+    </select>
+    <button onclick="RenderComposite()">Render Composite</button>
+    <select id="glyphs">
+    </select>
+    
+    <button onclick="UpdateFromList()">Update from Dropdown</button>
+  </div>
+  <div class="vexbox">
+    <div id="vf"></div>
+  </div>
+  <script>
+    function GetSymbols()
+    {
+      fetch('https://raw.githubusercontent.com/musescore/MuseScore/master/fonts/smufl/glyphnames.json').then(res=>res.json()).then(data=> {
+        console.log(data)
+        var select = document.getElementById("glyphs");
+        for (let [key, value] of Object.entries(data)) {
+          console.log(`${key}: ${value}`);
+          console.log(value.codepoint);
+          var option = document.createElement("option");
+          option.text = key + ' ' + value.codepoint;
+          option.value = value.codepoint.replace('U+','&#x') + ';';
+          select.add(option)
+        }
+      })    
+    }
+
+    const Qs = ["HQ","SQ","MQ","LQ"];
+    let Qmap = new Map();
+    Qmap[Qs[0]] = -86;
+    Qmap[Qs[1]] = 0;
+    Qmap[Qs[2]] = 0;
+    Qmap[Qs[3]] = 0;
+    function SaveGraphic() {
+      var BBox = document.getElementById("capture_HQ").getBBox();
+      console.log(BBox);
+      html2canvas(document.getElementById("capture_HQ"),{y: BBox.y + BBox.height/2 + 58, x: BBox.x, height: BBox.height/2 - 64, width: BBox.y - 350, backgroundColor: null},).then(canvas => {
+        canvas.style.borderStyle = 'dotted';
+        document.body.appendChild(canvas);
+        var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        var link = document.createElement('a');
+        link.href = canvas.toDataURL("image/png");
+        link.download = document.getElementById("symbol-code").value + '.png';
+        document.body.appendChild(link);
+        link.click();
+      });
+    }
+
+    function SaveGraphicQuality(q) {
+      var BBox = document.getElementById("capture_" + q).getBBox();
+      console.log(BBox);
+      html2canvas(document.getElementById("capture_" + q),{x:  Qmap[q], y: -BBox.y/2, height: BBox.height + BBox.y/2, width: BBox.width + 40, backgroundColor: null},).then(canvas => {
+        document.body.appendChild(canvas);
+        var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+        var link = document.createElement('a');
+        link.href = canvas.toDataURL("image/png");
+        link.download = document.getElementById("symbol-code").value + '_' + q + '.png';
+        document.body.appendChild(link);
+        link.click();
+      });
+    }
+
+    function SaveAll()
+    {
+      Qs.forEach(async q => await SaveGraphicQuality(q))
+    }
+
+    function UpdateSymbol()
+    {
+      Qs.forEach(q => UpdateSymbolQuality(q));
+    }
+
+    function UpdateSymbolQuality(q)
+    {
+      var s = document.getElementById("symbol_" + q);
+      s.innerHTML = "&#x" + document.getElementById("symbol-code").value + ";";
+      s.style.display = 'none';
+      s.style.display = 'block';
+    }
+
+    function UpdateComposites(q)
+    {
+      var s = document.getElementById("symbol_" + q);
+      s.innerHTML = document.getElementById("composites").value;
+      s.style.display = 'none';
+      s.style.display = 'block';
+    }
+
+    function UpdateSymbolFromList(q)
+    {  
+      var s = document.getElementById("symbol_" + q);
+      s.innerHTML = document.getElementById("glyphs").value;
+      var code = document.getElementById("glyphs").value;
+      code = code.replace('&#x','')
+      code = code.replace(';','')
+      document.getElementById("symbol-code").value = code
+      s.style.display = 'none';
+      s.style.display = 'block';
+    }
+
+    function RenderComposite()
+    {
+      Qs.forEach(q => UpdateComposites(q));
+    }
+
+    function UpdateFromList()
+    {
+      Qs.forEach(q=>UpdateSymbolFromList(q))
+    }
+
+    GetSymbols();
+  </script>
+</body>
